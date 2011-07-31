@@ -1,0 +1,13 @@
+DATETIME			DONE	DESC
+2011-07-26 1436				Flesh out World class. Load rooms from files
+2011-07-26 1438				Password encryption
+2011-07-26 1441		X		Git repository. Online?
+2011-07-26 1444				Work on player input/output. Make it consistent and easy
+							to read.
+2011-07-26 1445				Go through code thoroughly, see if I did anything stupid that
+							will effect me later.
+2011-07-26 1446	 			Test with MUD Client (zmud)
+2011-07-26 1446				Implement telnet protocol?
+2011-07-26 1447				Add error handling to current code.
+2011-07-28 1435		X		Add server shutdown functionality
+2011-07-28 					Refine say()

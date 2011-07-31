@@ -1,0 +1,37 @@
+	2011-07-26 1437
+	Worked on login system. Program now loads users from a file and properly 
+password checks. May want to add encryption to passwords. Added a player level
+and several commands: "quit", "level", "say". Created World class, at least the
+shell. Needs to be fleshed out, does absolutely nothing and has hooks nowhere
+right now. That's next on the agenda.
+
+	Program is getting kind of long for one file, but I'm going to keep it that
+way until I decide to split it up. I need to figure out how Python does this.
+
+	I also started several log files for myself. "bugs.txt" is for keeping track
+of bugs that I notice but don't NEED to fix (opting instead to work on some
+functionality or something). "todo.txt" is for keeping track of ideas and work
+flow over sessions, and "notes.txt" is this file, for keeping track of what I've
+done so far and my thoughts/plans going forward.
+
+	I've been this far before, nothing special. But this time I'm determined to 
+make it work. Stupid mud servers. 
+
+	So far it seems to be stable enough. A few crashes.
+	
+	2011-07-28 1441
+	Added a shutdown function to the Server class, Server.terminate(). Sends a 
+message to all client sockets before closing them, then closes the connection.
+For now the function will only be called upon the variable Server.shutdown being
+set to true (therefore exiting the main loop), or catching a KeyboardInterrupt I
+put on server.serve() in main().
+
+	Tested it, seems to work fine. Exactly as expected. Love python.
+	
+	Last night I set up a google projects repository for "frenik-mud". Name's 
+change but it was more of a test than anything. Next time I get a good internet 
+day I'll start uploading to the git repo.
+
+	Added Player.appendOutbuf(self, c), where c is the string to be appended. Not
+going to go through and make other code use it yet, going to make sure it's the 
+right way to do it first.
