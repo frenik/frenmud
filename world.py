@@ -1,5 +1,6 @@
 import room
 import os
+import objects
 
 class World:
     def __init__(self):
@@ -22,8 +23,9 @@ class World:
             settings = {}
             id = None
             title = None 
-            desc = None
+            desc = None            
             exits = [None]*10
+            inventory = []
             while currfile:
                 line = currfile.readline()
                 if line=='': break
@@ -58,7 +60,10 @@ class World:
                     exits[8] = int(settings[k])
                 elif k=='D':
                     exits[9] = int(settings[k])
+                elif k=='I':
+                    inventory.append(objects.Object(None,settings[k]))
             r = room.Room(id,title,desc,exits)
+            r.inventory = inventory
             self.rList[id] = r
         
         # loop through rooms and turn exit ints into room links
