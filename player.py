@@ -154,13 +154,11 @@ class Player:
                 # store as int as required
                 self.level = int(settings[k])
             elif k=="Room":
-                print settings[k]
                 for r in self.server.world.rList:
                     if r.id==int(settings[k]):                   
                         self.room = int(settings[k])
-        
-        # TEMP: add a "sword" to inventory
-        self.inventory.append(objects.Object(self,1,'Sword'))
+            elif k=='I':
+                self.inventory.append(objects.Object(self,settings[k]))
         
     def clearOutbuf(self):
         self.outBuf = ''
