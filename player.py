@@ -166,6 +166,7 @@ class Player:
         self.outBuf = ''
 
     def kill(self):
+        self.room.removePlayerFromRoom(self,'%s has quit.'%self.name)
         self.killed = True
 
     def fileno(self):
