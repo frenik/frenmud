@@ -5,10 +5,11 @@ class Room:
         self.desc = desc
         self.exits = exits
         self.pList = []
+        self.inventory = []
     
     def printToRoom(self,message):
         for p in self.pList:
-            p.outBuf += message       
+            p.outBuf += '%s\r\n'%message       
     
     def removePlayerFromRoom(self,player,message):
         self.pList.remove(player)

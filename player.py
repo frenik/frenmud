@@ -116,6 +116,8 @@ class Player:
                 self.move(9)
             elif string.upper(cmd)=='INV':
                 self.do_inventory()
+            elif string.upper(cmd)=='DROP':
+                self.do_drop(cmdstr)
             elif len(cmd)==0:
                 return
             else:
@@ -189,6 +191,9 @@ class Player:
         for p in self.room.pList:
             if p!=self:
                 lookStr += '%s is here.\r\n'%p.name
+        # display objects
+        for o in self.room.inventory:
+            lookStr += '%s is on the ground.\r\n'%o.name
         lookStr += '\r\n'
         self.outBuf += lookStr
       
@@ -214,3 +219,23 @@ class Player:
             for i in self.inventory:
                 self.outBuf += '%s\r\n'%i.name
         self.outBuf += '\r\n'
+        
+    def do_drop(self, objectstr):
+        object = None
+        for i in self.inventory:
+            if string.upper(i.name)==string.upper(objectstr):
+                object = i
+         
+        if object:
+            self.inventory.remove(object)
+            self.room.inventory.append(object)
+            self.outBuf += 'You drop %s.'%object.name
+            self.actionToRoom('%s drops %s.'%(self.name,object.name))
+        else:
+            self.outBuf += 'You don\'t have "%s".'%objectstr
+        self.outBuf += '\r\n'
+            
+    def actionToRoom(self, msg):
+        for p in self.room.pList:
+            if p!=self:
+                p.outBuf += '%s\r\n'%msg
