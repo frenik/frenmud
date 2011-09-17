@@ -35,3 +35,39 @@ day I'll start uploading to the git repo.
 	Added Player.appendOutbuf(self, c), where c is the string to be appended. Not
 going to go through and make other code use it yet, going to make sure it's the 
 right way to do it first.
+
+    2011-09-17 0300
+    Got the itch to do some work. Refined some loops that removed items from 
+lists they were currently iterating so that they wouldn't bug out. 
+
+    Also added a check at login to make sure the character wasn't currently logged
+in. Removed a piece of code that wasn't working, that was supposed to catch a "q"
+to shut down the server from the command line.
+
+    2011-09-17 0400
+    Filled out the World class, added the Room class. The World class contains a
+list of all rooms. Rooms contain a list of players. Players have a reference to 
+their room.
+
+    2011-09-17 0415
+    World init now loads room files from world/rooms. Room files are set up.
+    
+    2011-09-17 0430
+    Exits now display correctly.
+    
+    2011-09-17 0500
+    Added the direction north, need to add the rest of the exit commands. Everything
+seems to work correctly. Exits should assign properly, I need to add error
+checking. Done for the night, tired, need to be up in five hours. Good night though.
+
+Fuck paragraph tabs. Also need to split up the files, my one file (server.py) is
+like 400 lines and with my broken scroll wheel it's becoming a pain in the ass.
+Moving the classes to their respective files is a good start. I'll do that next
+time I sit down.
+
+    2011-09-17 1230
+Sat down and the computer was slow. Make sure program isn't hogging cpu.
+
+    2011-09-17 1400
+Fixed the CPU usage with a call to time.sleep(0.1) at the end of the main loop.
+Execution pauses for a tenth of a second every loop. May want to increase that later.

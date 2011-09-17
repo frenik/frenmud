@@ -6,7 +6,7 @@ DATETIME			DONE	DESC
 							to read.
 2011-07-26 1445				Go through code thoroughly, see if I did anything stupid that
 							will effect me later.
-2011-07-26 1446	 			Test with MUD Client (zmud)
+2011-07-26 1446	 	X		Test with MUD Client (zmud)
 2011-07-26 1446				Implement telnet protocol?
 2011-07-26 1447				Add error handling to current code.
 2011-07-28 1435		X		Add server shutdown functionality
