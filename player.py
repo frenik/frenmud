@@ -254,8 +254,28 @@ class Player:
         self.outBuf += '\r\n'
         
     def do_quit(self):
+        self.save()
         self.s.send("Goodbye!\r\n")
         self.kill();
+        
+    def save(self):            
+        # open file
+        f = open("players\\"+self.name+".plr", "w")
+        
+        # write hard settings
+        f.write('Username:%s\n'%self.name)
+        f.write('Password:%s\n'%self.password)
+        f.write('Level:%i\n'%self.level)
+        f.write('Room:%i\n'%self.room.id)
+        
+        # loop through inventory
+        for i in self.inventory:
+            # write to file
+            f.write('I:%i\n'%i.id)
+            # save object
+            i.save()
+            
+        print 'User saved.'
             
     def actionToRoom(self, msg):
         for p in self.room.pList:

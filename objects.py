@@ -25,3 +25,7 @@ class Object:
 
         self.id = int(file)
         self.owner = owner
+        
+    def save(self):
+        f = open("objects\\%i.obj"%self.id,'w')
+        f.write('Name:%s\n'%self.name)
