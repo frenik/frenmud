@@ -16,6 +16,7 @@ class Player:
         # initialize player variables
         self.name = ""
         self.level = -1
+        self.inventory = []
 
     def appendInbuf(self, c):
         self.inBuf += c
@@ -85,8 +86,7 @@ class Player:
             if string.upper(cmd)=="SAY":
                 self.do_say(cmdstr)
             elif string.upper(cmd)=="QUIT":
-                self.s.send("Goodbye!\r\n")
-                self.kill();
+                self.do_quit()
             elif string.upper(cmd)=="LEVEL":
                 if self.level:
                     self.outBuf+="Your current level is "+str(self.level)+".\r\n"
@@ -118,6 +118,8 @@ class Player:
                 self.do_inventory()
             elif string.upper(cmd)=='DROP':
                 self.do_drop(cmdstr)
+            elif string.upper(cmd)=='GET':
+                self.do_get(cmdstr)
             elif len(cmd)==0:
                 return
             else:
@@ -166,7 +168,7 @@ class Player:
         self.outBuf = ''
 
     def kill(self):
-        self.room.removePlayerFromRoom(self,'%s has quit.'%self.name)
+        self.room.removePlayerFromRoom(self,'%s has quit.\r\n'%self.name)
         self.killed = True
 
     def fileno(self):
@@ -235,6 +237,25 @@ class Player:
         else:
             self.outBuf += 'You don\'t have "%s".'%objectstr
         self.outBuf += '\r\n'
+    
+    def do_get(self, objectstr):
+        object = None
+        for i in self.room.inventory:
+            if string.upper(i.name)==string.upper(objectstr):
+                object = i
+        
+        if object:
+            self.room.inventory.remove(object)
+            self.inventory.append(object)
+            self.outBuf += 'You get %s.'%object.name
+            self.actionToRoom('%s gets %s.'%(self.name, object.name))
+        else:
+            self.outBuf += 'There is no "%s".'%objectstr
+        self.outBuf += '\r\n'
+        
+    def do_quit(self):
+        self.s.send("Goodbye!\r\n")
+        self.kill();
             
     def actionToRoom(self, msg):
         for p in self.room.pList:
