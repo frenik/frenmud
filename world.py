@@ -78,3 +78,12 @@ class World:
                         if t.id==r.exits[e]:
                             # set exit to room object
                             r.exits[e] = t
+    
+    def save(self):        
+        # loop through rooms
+        for r in self.rList:
+            # Room.save() also saves objects within rooms
+            r.save()
+        # done
+        print 'world saved'
+        

@@ -29,3 +29,4 @@ class Object:
     def save(self):
         f = open("objects\\%i.obj"%self.id,'w')
         f.write('Name:%s\n'%self.name)
+        f.close()

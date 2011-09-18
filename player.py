@@ -162,7 +162,8 @@ class Player:
                     if r.id==int(settings[k]):                   
                         self.room = int(settings[k])
             elif k=='I':
-                self.inventory.append(objects.Object(self,settings[k]))
+                self.inventory.append(objects.Object(self,settings[k]))        
+        f.close()
         
     def clearOutbuf(self):
         self.outBuf = ''
@@ -275,6 +276,7 @@ class Player:
             # save object
             i.save()
             
+        f.close()
         print 'User saved.'
             
     def actionToRoom(self, msg):

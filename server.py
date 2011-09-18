@@ -1,5 +1,5 @@
 import os.path
-import select
+import select       
 import string
 import socket
 import sys
@@ -37,41 +37,56 @@ class MUDServer:
         self.error = [self.s]
         while not self.shutdown:
             # build lists
-            
             iList,oList,eList = select.select(self.input,self.output,
                                               self.error,0)
             for f in iList:     
                 # handle server socket
                 if f == self.s:
+                    # accept client
                     client, address = self.s.accept()
-                    c = player.Player(client, address, self)
+                    # create new Player object for client
+                    c = player.Player(client, address, self)                    
+                    # add client to select() lists
                     self.input.append(c)
                     self.output.append(c)
                     self.error.append(c)
+                    # add client to server player list
                     self.pList.append(c)
-                    
                 else:
-                    try:                        
+                    try:                
+                        # get any data waiting for us from client
                         data = f.s.recv(1024)
-                        if data:
+                        if data: # if client sent
+                            # add it to client's input buffer
                             f.appendInbuf(data)
-                        else:
+                        else: # ?
                             print "client %d hung up" % f.s.fileno()
+                            # remove from lists
                             self.input.remove(f)
                             self.output.remove(f)
                             self.error.remove(f)
+                            self.pList.remove(f)
+                            # close socket
                             f.s.close()
-                    except socket.error, e:
+                    except socket.error, e: # socket error
                         print "client %d had error" % f.s.fileno()
+                        # remove from lists
                         self.input.remove(f)
                         self.output.remove(f)
                         self.error.remove(f)
-
+                        self.pList.remove(f)
+                        # close socket
+                        f.s.close()
+            
+            # handle output for clients ready to read
             for f in oList:
                 if f == self.s:
+                    # skip server socket
                     pass
                 else:
+                    # if we have anything to send
                     if f.outBuf:
+                        # send it and clear output buffer
                         f.s.send(f.outBuf)
                         f.clearOutbuf()
             
@@ -84,15 +99,22 @@ class MUDServer:
                     self.error.remove(p)
                     print 'client ("%s") killed'%p.name
                     self.pList.remove(p)   
-                    
+              
+            # sleep for 1/10th second, to save cpu. May need to decrease time
+            # in future.
             time.sleep(0.1)
                     
         # shut down server, main loop is over
         self.terminate()
 
     def terminate(self):
+        # save world
+        self.world.save()
+    
         # loop through player list and disconnect all
         for p in self.pList:
+            # save player first
+            p.save()
             p.s.send("Server shutting down.")
             p.s.close()
 
