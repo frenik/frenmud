@@ -8,6 +8,7 @@ class Room:
         self.exits = exits
         self.pList = []
         self.inventory = []
+        self.mList = []
     
     def printToRoom(self,message):
         for p in self.pList:

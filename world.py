@@ -69,7 +69,9 @@ class World:
             r = room.Room(id,title,desc,exits)
             r.inventory = inventory
             r.mList = mList
-            print mList
+            # update mobs knowledge of their room
+            for m in r.mList:
+                m.room = r
             self.rList[id] = r
         
         # loop through rooms and turn exit ints into room links

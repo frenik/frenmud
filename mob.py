@@ -2,6 +2,7 @@ class Mob():
     def __init__(self,id):
         ''' Load a mob from a given id '''
         self.id = id
+        self.room = None
         # open file
         f = open('world\\mobs\\%i.mob'%id,'r')
         
@@ -20,3 +21,6 @@ class Mob():
                 self.displayName = settings[k]
         
         f.close()
+        
+    def think(self):
+        pass

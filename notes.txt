@@ -71,3 +71,22 @@ Sat down and the computer was slow. Make sure program isn't hogging cpu.
     2011-09-17 1400
 Fixed the CPU usage with a call to time.sleep(0.1) at the end of the main loop.
 Execution pauses for a tenth of a second every loop. May want to increase that later.
+
+    2011-09-19 1145
+    I've been making most of my notes via git commit messages. This file is now
+for thinking things out.
+
+So now I have very simple mobs, items, and rooms. The basics. I'm satisfied 
+with my parser for now. The world saves on shutdown.
+    
+One of the things I was thinking about was the way I save files. I simply create
+a new file every time an object is saved, overwriting the old one. Efficient, I
+guess, but it's all HDD based. I think I should rewrite the save() methods to 
+instead parse and update files at some point. This also helps in the fact that if
+a crash occurs mid-save, the file is not completely lost, only the new entries in
+that file.
+
+I think what I'm going to tackle next is refining mobs a bit. I'm not sure how 
+they're going to work right now. Every second or so they're going to "tick", I
+know that. I'd like to give them "drives", needs and wants. Perhaps a mix of 
+traits that gives them personalities. 

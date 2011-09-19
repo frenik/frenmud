@@ -82,58 +82,9 @@ class Player:
                     break                        
                     
         elif self.gameState == GS_GAME:
-            # PARSING BEGINS HERE, SPLIT
+            # parse string in input buffer to command
             parseResult = self.parse(self.inBuf)
-                            
-            # strip first word for command"
-            '''
-            line = self.inBuf.split(" ")
-            cmd = line[0]
-            # place rest of string in cmdstr
-            cmdstr = string.join(line[1:])
-            # upper it for consistency           
-            if string.upper(cmd)=="SAY":
-                self.do_say(cmdstr)
-            elif string.upper(cmd)=="QUIT":
-                self.do_quit()
-            elif string.upper(cmd)=="LEVEL":
-                if self.level:
-                    self.outBuf+="Your current level is "+str(self.level)+".\r\n"
-                else:
-                    self.outBuf+="You have no level?\r\n"
-            elif string.upper(cmd)=="L":
-                self.do_look()
-            elif string.upper(cmd)=='N':
-                self.move(0)
-            elif string.upper(cmd)=='NE':
-                self.move(1)
-            elif string.upper(cmd)=='E':
-                self.move(2)
-            elif string.upper(cmd)=='SE':
-                self.move(3)
-            elif string.upper(cmd)=='S':
-                self.move(4)
-            elif string.upper(cmd)=='SW':
-                self.move(5)
-            elif string.upper(cmd)=='W':
-                self.move(6)
-            elif string.upper(cmd)=='NW':
-                self.move(7)
-            elif string.upper(cmd)=='U':
-                self.move(8)
-            elif string.upper(cmd)=='D':
-                self.move(9)
-            elif string.upper(cmd)=='INV':
-                self.do_inventory()
-            elif string.upper(cmd)=='DROP':
-                self.do_drop(cmdstr)
-            elif string.upper(cmd)=='GET':
-                self.do_get(cmdstr)
-            elif len(cmd)==0:
-                return
-            else:
-                self.outBuf += "Unrecognized command: \""+cmd+"\"\r\n"
-            '''
+                                        
         else:
             self.kill()
 
