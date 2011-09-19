@@ -27,6 +27,7 @@ class Player:
         self.name = ""
         self.level = -1
         self.inventory = []
+        self.room = None
 
     def appendInbuf(self, c):
         self.inBuf += c
@@ -124,7 +125,7 @@ class Player:
                         self.room = int(settings[k])
             elif k=='I':
                 self.inventory.append(objects.Object(self,settings[k]))        
-        f.close()
+        f.close()            
         
     def clearOutbuf(self):
         self.outBuf = ''
@@ -141,30 +142,34 @@ class Player:
         
     def do_look(self,target=None):
         lookStr = ''
-        # get title (& id for now, later make this admin only)
-        lookStr += '%s (%i)\r\n'%(self.room.title, self.room.id)
-        # get description
-        lookStr += '%s\r\n'%self.room.desc
-        # get exits
-        lookStr += 'Exits: '
-        eFound = False
-        for i in range(10):
-            if self.room.exits[i] != None:
-                if eFound:
-                    lookStr += ', '
-                lookStr += '%s'%EXIT_STRINGS_SHORT[i]
-                eFound = True
-        lookStr += '\r\n'
-        # display players
-        for p in self.room.pList:
-            if p!=self:
-                lookStr += '%s is here.\r\n'%p.name
-        # display mobs
-        for m in self.room.mList:
-            lookStr += '%s is here.\r\n'%m.displayName
-        # display objects
-        for o in self.room.inventory:
-            lookStr += '%s is on the ground.\r\n'%o.name
+        if target:
+            lookStr += target.lookStr
+            pass
+        else:        
+            # get title (& id for now, later make this admin only)
+            lookStr += '%s (%i)\r\n'%(self.room.title, self.room.id)
+            # get description
+            lookStr += '%s\r\n'%self.room.desc
+            # get exits
+            lookStr += 'Exits: '
+            eFound = False
+            for i in range(10):
+                if self.room.exits[i] != None:
+                    if eFound:
+                        lookStr += ', '
+                    lookStr += '%s'%EXIT_STRINGS_SHORT[i]
+                    eFound = True
+            lookStr += '\r\n'
+            # display players
+            for p in self.room.pList:
+                if p!=self:
+                    lookStr += '%s is here.\r\n'%p.name
+            # display mobs
+            for m in self.room.mList:
+                lookStr += '%s is here.\r\n'%m.displayName
+            # display objects
+            for o in self.room.inventory:
+                lookStr += '%s is on the ground.\r\n'%o.name
         lookStr += '\r\n'
         self.outBuf += lookStr
       
@@ -175,7 +180,13 @@ class Player:
         self.outBuf += "You said, \""+sendString+"\"\r\n"
         
     def move(self, dir):
-        print dir
+        # make sure there's actually an exit that way.
+        if self.room:
+            if not self.room.exits[dir]:
+                self.outBuf += "There's no exit there.\r\n"
+                return
+            
+        # otherwise do the moving crap   
         self.room.removePlayerFromRoom(self,
             '%s walks to the %s.\r\n'%(self.name,EXIT_STRINGS[dir]))
         self.room = self.room.exits[dir]
@@ -253,7 +264,27 @@ class Player:
                 p.outBuf += '%s\r\n'%msg
                 
     def parse_look(self, arg):
-        self.do_look()
+        if arg:
+            # attempt to find name in room that matches arg
+            possibleTargs = []
+            targ = None
+            objList = self.room.pList[:]
+            objList += self.room.mList[:]
+            objList += self.room.inventory[:]
+            # look through list
+            for o in objList:
+                if arg[0]==o.name[0]:
+                    if arg==o.name:
+                        targ = o
+                        break
+                    else:
+                        possibleTargs.append(o)
+            if targ:
+                self.do_look(targ)
+            else:
+                self.outBuf += 'There is no "%s".'%arg
+        else:
+            self.do_look()
         
     def parse_quit(self, arg):
         self.do_quit()

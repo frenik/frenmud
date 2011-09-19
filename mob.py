@@ -6,6 +6,7 @@ class Mob():
         self.room = None
         self.displayName = None
         self.shortName = None
+        self.lookStr = None
         self.moveRate = 0
         self.thinkAgain = 0
    
@@ -29,8 +30,13 @@ class Mob():
                 self.shortName = settings[k]
             elif k == 'MoveRate':
                 self.moveRate = int(settings[k])
+            elif k == 'Look':
+                self.lookStr = settings[k]
         
         f.close()
+        
+        # just an alias
+        self.name = self.displayName
         
     def think(self):
         # we're not ready to think yet

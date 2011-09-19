@@ -2,3 +2,4 @@ DisplayName:A zombie
 ShortName:zombie
 # a zombie can only move once every ten seconds
 MoveRate:10
+Look:The zombie shambles back and forth, glazed eyes leering in your direction.
