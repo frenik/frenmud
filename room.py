@@ -1,4 +1,5 @@
 from constants import *
+
 class Room:
     def __init__(self, id, title, desc, exits):
         self.id = id
@@ -44,6 +45,11 @@ class Room:
             # save object
             i.save()
             print '    item #%i saved'%i.id
+        
+        for m in self.mList:
+            f.write('M:%i\n'%m.id)
+            # m.save()
+            print '    mob #%i saved'%m.id
             
         f.close()
         

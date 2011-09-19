@@ -45,11 +45,7 @@ class Player:
             else:
                 self.outBuf = "No such player. Create? (Y/n)\r\n"
                 # throw them in game for now, just testing
-                self.gameState = GS_GAME
-                self.name = "Anon"
-                self.outBuf = "Welcome!\r\n\r\n"                
-                self.room = 0
-                self.server.putPlayerInRoom(self, self.room)
+                self.kill()
         elif self.gameState == GS_GETPASS:
             self.password = self.inBuf
             # attempt to load file for self.name
@@ -169,7 +165,10 @@ class Player:
         self.outBuf = ''
 
     def kill(self):
-        self.room.removePlayerFromRoom(self,'%s has quit.\r\n'%self.name)
+        try:
+            self.room.removePlayerFromRoom(self,'%s has quit.\r\n'%self.name)
+        except:
+            pass
         self.killed = True
 
     def fileno(self):
@@ -195,6 +194,9 @@ class Player:
         for p in self.room.pList:
             if p!=self:
                 lookStr += '%s is here.\r\n'%p.name
+        # display mobs
+        for m in self.room.mList:
+            lookStr += '%s is here.\r\n'%m.displayName
         # display objects
         for o in self.room.inventory:
             lookStr += '%s is on the ground.\r\n'%o.name

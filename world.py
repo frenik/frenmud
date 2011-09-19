@@ -1,6 +1,7 @@
 import room
 import os
 import objects
+import mob
 
 class World:
     def __init__(self):
@@ -26,6 +27,7 @@ class World:
             desc = None            
             exits = [None]*10
             inventory = []
+            mList = []
             while currfile:
                 line = currfile.readline()
                 if line=='': break
@@ -62,8 +64,12 @@ class World:
                     exits[9] = int(settings[k])
                 elif k=='I':
                     inventory.append(objects.Object(None,settings[k]))
+                elif k=='M':
+                    mList.append(mob.Mob(int(settings[k])))
             r = room.Room(id,title,desc,exits)
             r.inventory = inventory
+            r.mList = mList
+            print mList
             self.rList[id] = r
         
         # loop through rooms and turn exit ints into room links
