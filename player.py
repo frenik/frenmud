@@ -3,8 +3,18 @@ import os
 import objects
 import string
 
-class Player:
+class Player:        
     def __init__(self, sock, addr, server):
+        self.cmds = {'look':self.parse_look,
+                'quit':self.parse_quit,
+                'say':self.parse_say,
+                'get':self.parse_get,
+                'give':self.parse_give}
+
+        for e in EXIT_STRINGS:
+            self.cmds[e] = self.parse_move
+        for e in EXIT_STRINGS_SHORT:
+            self.cmds[e.lower()] = self.parse_move
         print "New connection from",addr
         self.s = sock
         self.addr = addr
@@ -73,7 +83,10 @@ class Player:
                     
         elif self.gameState == GS_GAME:
             # PARSING BEGINS HERE, SPLIT
+            parseResult = self.parse(self.inBuf)
+                            
             # strip first word for command"
+            '''
             line = self.inBuf.split(" ")
             cmd = line[0]
             # place rest of string in cmdstr
@@ -120,6 +133,7 @@ class Player:
                 return
             else:
                 self.outBuf += "Unrecognized command: \""+cmd+"\"\r\n"
+            '''
         else:
             self.kill()
 
@@ -210,6 +224,7 @@ class Player:
         self.outBuf += "You said, \""+sendString+"\"\r\n"
         
     def move(self, dir):
+        print dir
         self.room.removePlayerFromRoom(self,
             '%s walks to the %s.\r\n'%(self.name,EXIT_STRINGS[dir]))
         self.room = self.room.exits[dir]
@@ -285,3 +300,108 @@ class Player:
         for p in self.room.pList:
             if p!=self:
                 p.outBuf += '%s\r\n'%msg
+                
+    def parse_look(self, arg):
+        self.do_look()
+        
+    def parse_quit(self, arg):
+        self.do_quit()
+        
+    def parse_say(self, arg):
+        self.do_say(arg)
+        
+    def parse_get(self, arg):
+        self.do_get(arg)
+        
+    def parse_give(self, arg):
+        self.outBuf += 'Sorry, "give" command not implemented yet.\r\n'
+        
+    def parse_move(self, arg):
+        self.move(arg)
+            
+    def parse(self, line):
+        # strip whitespace from ends
+        line = line.strip()
+        # count spaces
+        spaces = line.count(' ')
+        if not spaces:
+            first = line
+            arg = None
+        else:
+            # grab the first word, convert to lowercase
+            line = line.split(' ',1)
+            first = line[0].lower()
+            arg = line[1]
+        
+        # init some variables
+        possibleCmds = []
+        cmd = None
+        
+        # loop through command list
+        for c in self.cmds:
+            # does our current command's first letter match the given word's?
+            if first[0]==c[0]:
+                # if the words match entirely, we've found our command, shortcut
+                if first==c:
+                    cmd = c
+                    break # get out of loop, we're done
+                # only add it if it's equal to or shorter in length than the cmd
+                elif len(first)<=len(c):
+                    possibleCmds.append(c)                
+        # At this point we have either a list of possible commands, or
+        # have found the command itself. 
+        # If we've found it, possibleCmds will have only one element.
+        if not cmd:
+            if len(possibleCmds)==1:
+                cmd = possibleCmds[0]
+
+        # if we still haven't found it...
+        if not cmd:
+            # attempt to narrow down possibleCmds by comparing 
+            # successive letters, starting at [1].
+            for i in range(1,len(first)):
+                for p in possibleCmds[:]:
+                    if first[i] != p[i]:
+                        # if we run into a letter that doesn't match, remove it
+                        # as a possibility
+                        possibleCmds.remove(p)            
+                # this will be True if we only have one possibility
+                if len(possibleCmds)==1: 
+                    cmd = possibleCmds[0]
+                    break
+        
+        # still haven't found it, possibleCmds is 2+ or 0
+        if not cmd:
+            print possibleCmds
+            # too many possibilities to decide
+            if len(possibleCmds)>1:
+                return possibleCmds
+            # no possibilities left
+            elif not len(possibleCmds):
+                return first
+        
+        # we've found it here, otherwise we'd already have returned.
+        # see if it's a direction...
+        print "cmd = %s"%cmd
+        if EXIT_STRINGS.count(cmd):
+            print EXIT_STRINGS.count(cmd)
+            try:
+                pos = EXIT_STRINGS.index(cmd)
+                # sends the number of the direction as the arg instead
+                print "self.cmds[%s][%i]"%(cmd,pos)
+                self.cmds[cmd](pos)            
+            except:
+                pass
+        elif EXIT_STRINGS_SHORT.count(cmd.upper()):
+            try:
+                pos = EXIT_STRINGS_SHORT.index(cmd.upper())
+                # sends the number of the direction as the arg instead
+                print "self.cmds[%s][%i]"%(cmd,pos)
+                self.cmds[cmd](pos)
+            except:
+                pass
+        # send the argument to the function specified in the dictionary.
+        else:
+            self.cmds[cmd](arg)
+            
+        print cmd

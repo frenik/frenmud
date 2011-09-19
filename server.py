@@ -102,7 +102,7 @@ class MUDServer:
               
             # sleep for 1/10th second, to save cpu. May need to decrease time
             # in future.
-            time.sleep(0.1)
+            time.sleep(0.01)
                     
         # shut down server, main loop is over
         self.terminate()
