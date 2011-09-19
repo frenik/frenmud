@@ -29,6 +29,7 @@ class MUDServer:
         self.pList = []        
         # initialize World
         self.world = world.World()    
+        self.lastTick = time.time()
 
     def serve(self):
         print "Serving on port", self.port
@@ -100,11 +101,18 @@ class MUDServer:
                     print 'client ("%s") killed'%p.name
                     self.pList.remove(p)   
               
-            # sleep for 1/10th second, to save cpu. May need to decrease time
+            # sleep for 1/1000th second, to save cpu. May need to decrease time
             # in future.
-            time.sleep(0.01)
+            time.sleep(0.001)
             
-            # mob tick
+            # check to see if it's time to tick
+            t = time.time()
+            if t-self.lastTick>=1:                
+                for r in self.world.rList:
+                    for m in r.mList:
+                        m.think()
+                self.lastTick = t
+                    
                     
         # shut down server, main loop is over
         self.terminate()

@@ -1,1 +1,4 @@
 DisplayName:A zombie
+ShortName:zombie
+# a zombie can only move once every ten seconds
+MoveRate:10

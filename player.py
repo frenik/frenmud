@@ -139,7 +139,7 @@ class Player:
     def fileno(self):
         return self.s.fileno()
         
-    def do_look(self):
+    def do_look(self,target=None):
         lookStr = ''
         # get title (& id for now, later make this admin only)
         lookStr += '%s (%i)\r\n'%(self.room.title, self.room.id)
@@ -333,13 +333,11 @@ class Player:
         
         # we've found it here, otherwise we'd already have returned.
         # see if it's a direction...
-        print "cmd = %s"%cmd
         if EXIT_STRINGS.count(cmd):
             print EXIT_STRINGS.count(cmd)
             try:
                 pos = EXIT_STRINGS.index(cmd)
                 # sends the number of the direction as the arg instead
-                print "self.cmds[%s][%i]"%(cmd,pos)
                 self.cmds[cmd](pos)            
             except:
                 pass
@@ -347,12 +345,9 @@ class Player:
             try:
                 pos = EXIT_STRINGS_SHORT.index(cmd.upper())
                 # sends the number of the direction as the arg instead
-                print "self.cmds[%s][%i]"%(cmd,pos)
                 self.cmds[cmd](pos)
             except:
                 pass
         # send the argument to the function specified in the dictionary.
         else:
             self.cmds[cmd](arg)
-            
-        print cmd

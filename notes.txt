@@ -82,11 +82,52 @@ with my parser for now. The world saves on shutdown.
 One of the things I was thinking about was the way I save files. I simply create
 a new file every time an object is saved, overwriting the old one. Efficient, I
 guess, but it's all HDD based. I think I should rewrite the save() methods to 
-instead parse and update files at some point. This also helps in the fact that if
-a crash occurs mid-save, the file is not completely lost, only the new entries in
-that file.
+instead parse and update files at some point, moving the burden more to the CPU 
+(as perhaps only one or two lines will need to change). This also helps in the 
+fact that if a crash occurs mid-save, the file is not completely lost, only the 
+new entries in that file.
 
 I think what I'm going to tackle next is refining mobs a bit. I'm not sure how 
 they're going to work right now. Every second or so they're going to "tick", I
 know that. I'd like to give them "drives", needs and wants. Perhaps a mix of 
 traits that gives them personalities. 
+
+    2011-09-19 1450
+Took a break and thought about it for a bit. First, I just need to come up with
+a very simple system. Ticks occur once every second. I was thinking that certain
+actions should take a certain amount of time, which leads me to the variable 
+"isBusy". Take for example the action of eating. A zombie finds a nice fresh 
+corpse and begins to dig in. Here's from the zombie's POV:
+
+move north
+decide what to do (assign weights to possible actions)
+hunger is maxed so corpse takes priority
+eat corpse, which takes ten turns
+isBusy = 10
+
+So then for the next ten turns, isBusy would be decremented until it's zero. As
+long as isBusy > 0, the zombie could do nothing else.
+
+This brings up the point of "what if the zombie is interrupted?" Say a player 
+walks in and suddenly, the weight of hunger on the zombie's decision making 
+should be reduced, and perhaps less than the weight of the threat the player
+poses.
+
+I don't like isBusy.
+
+What's the alternative? Mobs thinking fully every turn. As the zombie's hunger
+is reduced, he may decide he's had enough. If hunger=0, there's no reason to eat
+any more, and he leaves a half-eaten corpse on the ground. What next? 
+
+Maybe he decides to hunt, and listens for movement. Perhaps a zombie can hear 
+movement up to 3 rooms away in every direction. The algorithm returns that there
+is movement 3 rooms to the north, so he moves north.
+
+I like this, but I need a mechanism to restrict movement rate. Otherwise, 
+mobs will be able to move and react far too quickly for most players. A zombie 
+could be in your room from three rooms away and eating your face 4 seconds after
+you typed "south", which barely gives the player a chance to react. Perhaps setting
+a moveRate variable, which is the amount of seconds between moves for that
+creature.
+
+I'll go play in the code for a bit, implementing this last idea.
