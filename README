@@ -1,0 +1,41 @@
+    Dear Browser,
+
+    This is just a hobby project, written by a lifelong nerd and fulltime grill
+cook, in his off hours. I don't know where it's going, I'm just kind of following
+the flow and going where my whims take me.
+
+    Growing up I loved to code (I'm 27). I found Python a few years ago and the
+first thing I did beyond your basic hello world was write a little mud server 
+with it. I was astonished at the ease with which Python allowed me to get a server
+up and running, something that I struggled with in the past in C. I remember
+my first attempts at writing a mud server in C or C++ would take hours just to 
+get the basic skeleton up, just to get it into a state where you could connect.
+
+    Now with Python I'm throwing up new features and barely even trying. And
+most importantly, I'm _HAVING FUN_. That's what this is all about, a bit of fun.
+There will probably be nothing in here for you to learn from, unless you want
+to learn how not to do things, and if that's the case, you're a bit of a weirdo.
+
+    It's sloppy, it's messy, it's probably "non-pythonic" and a complete horror
+show to you experienced coders out there. But right now I'm just interested in 
+something that works. I have no deadlines. If tomorrow I find out I did something
+stupid and 90% of the code has to be refactored, I'll probably just suck it up and
+type it back out.
+
+    Then, one day when it all works and is in playable shape, I'll start crunching
+the code down. Making it more efficient and more clever. Easier to read. Well-
+documented. Beautiful little comments worth a hundred words in 80 characters or
+less. 
+
+    But right now, I'm just going with what works.
+
+    Oh and before I forget: feel free to fork this project or do whatever you'd
+like with the code. I give the source to the universe. Let's face it, there isn't
+a lot of money to be made with a MUD server, especially one as poorly written as
+this. And besides, if you do something clever with the code and make a billion
+dollars, it was your clever idea that made you that billion dollars, not my
+miserable code. Although if you'd like to send me a couple million it would not
+be rejected out of principle.
+
+    Thanks for reading, and if you've got something to say, email me 
+(frenik@gmail.com).
