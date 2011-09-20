@@ -131,3 +131,28 @@ a moveRate variable, which is the amount of seconds between moves for that
 creature.
 
 I'll go play in the code for a bit, implementing this last idea.
+
+    2011-09-20
+Update to last post, that bit of code seems to work. The zombie follows (a bit 
+slow, but that could be tweaked), or tries to attack.
+
+I also updated the "look" command to be able to look at other players (although
+it will crash right now probably since players lack a look string), mobs and 
+objects (objects same as players).
+
+I'd like to rethink how objects and mobs are treated in the code. This problem
+came up when writing the mob's behavior. I can't think of a simple way to store 
+behavior in the file. Also, it's kinda silly to store behavior in the file
+when there will be more than one of a specific type of mob.
+
+The obvious way to do it, to me, is to create a new class for each mob type (this
+all applies to objects, as well), in its own file. The Mob class could contain
+any shared behaviors, "actions" if you will, the abilities that mobs have 
+access to. So a zombie would be "class Zombie(Mob)", in other words a subclass
+of Mob. The code would contain their various strings and their own think() method,
+which would call Mob's action methods as needed.
+
+I suppose, then, that when we load a mob's file, we'll need to know what kind of 
+mob it is before we can instantiate it and put it in game. 
+
+Let's try it with Zombie, next time I sit down.
