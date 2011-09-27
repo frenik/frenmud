@@ -2,6 +2,7 @@ import room
 import os
 import objects
 import mob
+import files
 
 class World:
     def __init__(self):
@@ -9,32 +10,24 @@ class World:
         self.rList = []
         
         # open all files in directory world/rooms/
-        files = os.listdir('world\\rooms\\')
+        fileList = os.listdir('world\\rooms\\')
         
         # find highest room number and create self.rList with that many slots
         highNum = 1
-        for f in files:
+        for f in fileList:
             num = f.split('.')
             if int(num[0]) > highNum:
                 highNum = int(num[0])
         self.rList = [0]*(highNum+1)
     
-        for f in files:
-            currfile = open('world\\rooms\\%s'%f,'r')
-            settings = {}
+        for f in fileList:
+            settings = files.loadFromFile('world\\rooms\\%s'%f)
             id = None
             title = None 
             desc = None            
             exits = [None]*10
             inventory = []
             mList = []
-            while currfile:
-                line = currfile.readline()
-                if line=='': break
-                line = line.rstrip('\n')
-                if line.find('#')==0: continue
-                line = line.split(':')
-                settings[line[0]] = line[1]
             for k in settings.keys():
                 if k=='ID':
                     id = int(settings[k])
