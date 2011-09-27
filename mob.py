@@ -47,19 +47,19 @@ class Mob():
         for k,v in mobTypes.items():
             if self.type == k:
                 print 'Mob Personality = %s (%s)'%(k,v)
-                self.type = v()
+                self.type = v(self)
                 print self.type
                 typeFound = True
         if not typeFound:
             print 'Error loading mob: personality not found.'
         
-        # just an alias
-        self.name = self.displayName
+        # just an alias for parse_look
+        self.name = self.shortName
         
     def think(self):
         if self.type:
             # pass a reference to ourself
-            self.type.think(self)
+            self.type.think()
         else:
             # zombie behavior by default
             # we're not ready to think yet
@@ -90,15 +90,16 @@ class Mob():
                 self.thinkAgain = 10
         
     def move(self,room):
-        self.room.printToRoom('%s shuffles out.'%self.displayName)
+        self.room.printToRoom('%s %s'%(self.displayName,self.type.strings['moveOut']))
         self.room.mList.remove(self)
         self.room = room
         self.room.mList.append(self)
-        self.room.printToRoom('%s shuffles in.'%self.displayName)
+        self.room.printToRoom('%s %s'%(self.displayName,self.type.strings['moveIn']))
         
     def attack(self,target):
         target.outBuf += '%s wants to attack you, but '%self.displayName
         target.outBuf += 'can\'t.\r\n'
         
     def say(self,sayString):
-        self.room.printToRoom('%s says, "%s"\r\n'%(self.displayName,sayString))
+        self.room.printToRoom('%s %s, "%s"\r\n'%
+            (self.displayName,self.type.strings['sayStr'],sayString))

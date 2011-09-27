@@ -9,7 +9,7 @@ class Object:
         while f:
             line = f.readline()
             # test for empty line
-            if line=="": break
+            if line=='': break
             line = line.rstrip('\n')            
             # comment lines start with '#', discard line and continue
             if line.find('#')==0: continue            

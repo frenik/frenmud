@@ -265,6 +265,15 @@ class Player:
                 
     def parse_look(self, arg):
         if arg:
+            ''' I have a feeling that this code is going to need to be moved
+                to its own method. Something like findObjectInRoom(string)
+                that returns an object, or the string on failure. Because I'll 
+                also need to find things for give and get, off the top of my head.
+                The basic algorithm for matching strings is used in parsing
+                the command, as well. Perhaps I could reuse all of that somehow.
+                
+                Food for thought.
+            '''
             # attempt to find name in room that matches arg
             possibleTargs = []
             targ = None
@@ -273,16 +282,37 @@ class Player:
             objList += self.room.inventory[:]
             # look through list
             for o in objList:
+                # compare first letter of object's name to first letter of arg
                 if arg[0]==o.name[0]:
+                    # if our argument matches exactly, skip the rest of loop
                     if arg==o.name:
-                        targ = o
+                        possibleTargs.append(o)
                         break
+                    # doesn't match exactly, but still a possibility
                     else:
                         possibleTargs.append(o)
+                            
+            # if we only found one possibility
+            if len(possibleTargs)==1:
+                targ = possibleTargs[0]
+            # if we found no possibilities, it'll take care of itself as targ == None        
+            elif len(possibleTargs)==0: pass 
+            # more than one possibility
+            else: 
+                # narrow it down somehow
+                # for now just return the first possibility
+                targ = possibleTargs[0]
+                
+            # found it yet?
             if targ:
                 self.do_look(targ)
+                return
             else:
-                self.outBuf += 'There is no "%s".'%arg
+                # maybe get fancy with this and use proper 'a/an' grammar later
+                # example, right now:  You don't see a "apple" here.
+                # might bug grammar nazis, which is fine, but why not be nice
+                # to the pedantic little pricks.
+                self.outBuf += "You don't see a \"%s\" here.\r\n"%arg
         else:
             self.do_look()
         

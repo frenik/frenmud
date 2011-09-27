@@ -1,15 +1,32 @@
 class Zombie():
-    def think(self,mob):
+    def __init__(self,parent):
+        # get a reference to our parent object
+        self.parent = parent
+        # establish unique strings for this mob
+        self.strings = {
+            # "displayName does something."
+            'displayName' : 'A zombie',    
+            # What a player sees when doing "look Zombie"
+            'lookStr' : parent.lookStr, # temporary until detailed look
+            # "A zombie shuffles out."
+            'moveOut' : 'shuffles out.',
+            # "A zombie shuffles in."
+            'moveIn' : 'shuffles in.',
+            # "A zombie groans, 'murrhrhrh'"
+            'sayStr' : 'groans'
+        }
+        
+    def think(self):
         # we're not ready to think yet
-        if mob.thinkAgain:
-            mob.thinkAgain -= 1
+        if self.parent.thinkAgain:
+            self.parent.thinkAgain -= 1
             return
             
         # zombies always look for targets
         target = None
         
         # look for a player target in current room
-        for p in mob.room.pList:
+        for p in self.parent.room.pList:
             # in here we'll figure out who is the best target
             # or perhaps pick one at random. For now, we'll just
             # target the first poor Player he sees
@@ -18,11 +35,11 @@ class Zombie():
             
         if not target:
             # look in adjacent rooms for targets
-            for e in mob.room.exits:
+            for e in self.parent.room.exits:
                 if e:
                     if len(e.pList):
-                        mob.move(e)
-                        mob.thinkAgain = 10
+                        self.parent.move(e)
+                        self.parent.thinkAgain = 10
         else:
-            mob.attack(target)          
-            mob.thinkAgain = 10
+            self.parent.attack(target)          
+            self.parent.thinkAgain = 10
