@@ -23,10 +23,14 @@ def loadFromFile(filename):
         line = line.rstrip('\n')
         # test for comment line, discard
         if line.find('#') == 0: # comment lines start with # on first space
+            continue
         # split line by colon character
         line = line.split(':')
         # store everything up to first colon as key, everything after as value
         settings[line[0]] = line[1]
+    
+    # close file
+    f.close()
     
     # return the dictionary
     return settings

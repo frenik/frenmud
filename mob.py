@@ -1,4 +1,5 @@
 import mobs.zombie
+import files
 
 mobTypes = {'Zombie':mobs.zombie.Zombie}
 
@@ -14,19 +15,8 @@ class Mob():
         self.type = None
         self.moveRate = 0
         self.thinkAgain = 0
-   
-        # open file
-        f = open('world\\mobs\\%i.mob'%id,'r')
         
-        settings = {}
-        
-        while f:
-            line = f.readline()
-            if line=="": break # empty line, stop reading
-            line = line.rstrip('\n') # strip endlines
-            if line.find('#')==0: continue # comment
-            line = line.split(':')
-            settings[line[0]] = line[1]
+        settings = files.loadFromFile('world\\mobs\\%i.mob'%id)
             
         for k in settings.keys():
             if k == 'DisplayName':
@@ -39,8 +29,6 @@ class Mob():
                 self.lookStr = settings[k]
             elif k == 'Type':
                 self.type = settings[k]
-        
-        f.close()
         
         # load "personality"
         typeFound = False
