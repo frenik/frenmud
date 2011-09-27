@@ -1,3 +1,4 @@
+Type:Zombie
 DisplayName:A zombie
 ShortName:zombie
 # a zombie can only move once every ten seconds

@@ -1,3 +1,7 @@
+import mobs.zombie
+
+mobTypes = {'Zombie':mobs.zombie.Zombie}
+
 class Mob():
     def __init__(self,id):
         ''' Load a mob from a given id '''
@@ -7,6 +11,7 @@ class Mob():
         self.displayName = None
         self.shortName = None
         self.lookStr = None
+        self.type = None
         self.moveRate = 0
         self.thinkAgain = 0
    
@@ -32,39 +37,57 @@ class Mob():
                 self.moveRate = int(settings[k])
             elif k == 'Look':
                 self.lookStr = settings[k]
+            elif k == 'Type':
+                self.type = settings[k]
         
         f.close()
+        
+        # load "personality"
+        typeFound = False
+        for k,v in mobTypes.items():
+            if self.type == k:
+                print 'Mob Personality = %s (%s)'%(k,v)
+                self.type = v()
+                print self.type
+                typeFound = True
+        if not typeFound:
+            print 'Error loading mob: personality not found.'
         
         # just an alias
         self.name = self.displayName
         
     def think(self):
-        # we're not ready to think yet
-        if self.thinkAgain:
-            self.thinkAgain -= 1
-            return
-            
-        # zombies always look for targets
-        target = None
-        
-        # look for a player target in current room
-        for p in self.room.pList:
-            # in here we'll figure out who is the best target
-            # or perhaps pick one at random. For now, we'll just
-            # target the first poor Player he sees
-            target = p
-            break
-            
-        if not target:
-            # look in adjacent rooms for targets
-            for e in self.room.exits:
-                if e:
-                    if len(e.pList):
-                        self.move(e)
-                        self.thinkAgain = 10
+        if self.type:
+            # pass a reference to ourself
+            self.type.think(self)
         else:
-            self.attack(target)          
-            self.thinkAgain = 10
+            # zombie behavior by default
+            # we're not ready to think yet
+            if self.thinkAgain:
+                self.thinkAgain -= 1
+                return
+                
+            # zombies always look for targets
+            target = None
+            
+            # look for a player target in current room
+            for p in self.room.pList:
+                # in here we'll figure out who is the best target
+                # or perhaps pick one at random. For now, we'll just
+                # target the first poor Player he sees
+                target = p
+                break
+                
+            if not target:
+                # look in adjacent rooms for targets
+                for e in self.room.exits:
+                    if e:
+                        if len(e.pList):
+                            self.move(e)
+                            self.thinkAgain = 10
+            else:
+                self.attack(target)          
+                self.thinkAgain = 10
         
     def move(self,room):
         self.room.printToRoom('%s shuffles out.'%self.displayName)
