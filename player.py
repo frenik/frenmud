@@ -5,24 +5,30 @@ import string
 
 class Player:        
     def __init__(self, sock, addr, server):
+        ''' Initialize Player object.
+        '''
+        # dictionary containing commands, mapped to their functions for
+        # further parsing.
         self.cmds = {'look':self.parse_look,
                 'quit':self.parse_quit,
                 'say':self.parse_say,
                 'get':self.parse_get,
                 'give':self.parse_give}
-
+        # add long directions to self.cmds (this saved me some typing)
         for e in EXIT_STRINGS:
             self.cmds[e] = self.parse_move
+        # add short directions (ex: "n", "s", etc.)
         for e in EXIT_STRINGS_SHORT:
             self.cmds[e.lower()] = self.parse_move
-        print "New connection from",addr
-        self.s = sock
-        self.addr = addr
+        # tell console we've got a connection
+        print "New connection from",addr       
+        self.s = sock   # s contains our socket handle
+        self.addr = addr # addr contains address tuple
         self.server = server # handle to server
-        self.outBuf = "Name: "
-        self.gameState = GS_GETNAME
-        self.inBuf = ""
-        self.killed = False
+        self.outBuf = "Name: " # send this to player
+        self.gameState = GS_GETNAME # put them in the first gamestate
+        self.inBuf = "" # clear their inbuf
+        self.killed = False # when killed is True, player will be disconnected
         # initialize player variables
         self.name = ""
         self.level = -1
@@ -30,63 +36,88 @@ class Player:
         self.room = None
 
     def appendInbuf(self, c):
+        ''' Add a string to the player's input buffer, and process it if we've hit
+            a newline (end of command).
+            
+            c: string containing the data to be appended
+            
+            I think the reason I did it this way was because I'm testing using 
+            plain old telnet, which means as I type, commands get sent. So when
+            it sends \r\n, I hit enter and it's time to process what I sent.
+            ZMud works, however, so it must also send the terminator.
+        '''
         self.inBuf += c
-        # not 100% why I did it this way, this has to be buggy
+        # if we've received the terminator
         if self.inBuf[-2:] == "\r\n":
+            # strip terminator
             self.inBuf = self.inBuf.rstrip('\r\n')
+            # send it off to be processed
             self.processInput()
+            # clear input buffer after it's been processed
             self.inBuf = ''
             
     def appendOutbuf(self, c):
+        ''' I don't think this function ever gets used. It simply appends a 
+            string (c) to the player's output buffer. In practice I just do it
+            this way anyway inline.
+        ''''
         self.outBuf += c
 
     def processInput(self):
+        ''' Process the data in the player's input buffer, depending on game state.
+        '''
+        # user freshly logged in, presented with Name: prompt.
         if self.gameState == GS_GETNAME:
+            # set name to what's in the input buffer (could this lead to bugs?)
             self.name = self.inBuf
             # check to see if user exists
             # by checking to see if file exists for that user
             if os.path.exists("players\\"+self.name+".plr"):
                 # make sure player isn't already logged in
                 if self.server.isLoggedIn(self.name):
+                    # player is already logged in, tell the player
                     self.outBuf = "Sorry, that player is already logged in."
-                    self.kill()
+                    # and kill the player
+                    self.killed = True
+                    # done processing. COOOOLD BLOOOODED
                     return
+                # at this point, we've established that the player exists
+                # and is not already logged in, so let's get a password
                 self.outBuf = "Pass: "
                 self.gameState = GS_GETPASS
+                # and load player while we're at it
+                self.loadPlayer(self.name)
             else:
+                # user doesn't exist, ask if they'd like to create a character
                 self.outBuf = "No such player. Create? (Y/n)\r\n"
-                # throw them in game for now, just testing
-                self.kill()
-        elif self.gameState == GS_GETPASS:
-            self.password = self.inBuf
-            # attempt to load file for self.name
-            # TEST code
-            f = open("players\\"+self.name+".plr", "r")
-            while f:
-                line = f.readline()
-                line = line.split(':')
-                if line[0]=="Password":
-                    if line[1].rstrip()==self.password:
-                        self.gameState = GS_GAME
-                        self.outBuf = "Welcome!\r\n\r\n"
-                        self.loadPlayer(self.name)
-                        self.server.putPlayerInRoom(self,self.room)
-                        return
-                    else:
-                        self.outBuf += "DEBUG: \""+self.password+"\":\""+line[1]+"\"\r\n"
-                        self.outBuf += "Incorrect password.\r\n\r\nName: "
-                        self.name = ""
-                        self.password = ""
-                        self.gameState = GS_GETNAME
-                        return
-                    f.close()
-                    break                        
-                    
-        elif self.gameState == GS_GAME:
+                # put them in GS_CREATE_YN to get answer
+                self.gameState = GS_CREATE_YN
+        elif self.gameState == GS_CREATE_YN:
+            # not yet implemented
+            pass
+        elif self.gameState == GS_GETPASS:            
+            if self.password==self.inBuf:
+                self.gameState = GS_GAME
+                self.outBuf += "Welcome!\r\n\r\n"
+                self.server.putPlayerInRoom(self, self.room)
+            else:
+                ''' I'll need to be really careful here, it could open it up to 
+                    hacks. For example, I don't plan on putting "IsAdmin:False" 
+                    or whatever in every single player file. If someone types in
+                    my admin name, but gets a wrong password, this method will
+                    set self.isAdmin to true, and never reset it. Perhaps a method
+                    that fully resets all variables set by LoadPlayer() is in order
+                '''
+                self.outBuf += "Incorrect password.\r\n\r\nName: "
+                self.name = ""
+                self.password = ""
+                self.gameState = GS_GETNAME 
+        elif self.gameState == GS_GAME: # in game
             # parse string in input buffer to command
-            parseResult = self.parse(self.inBuf)
-                                        
+            parseResult = self.parse(self.inBuf)                                      
         else:
+            # no valid game state, kill player
+            # this should be treated as an error, as it shouldn't happen.
             self.kill()
 
     def loadPlayer(self, name):
