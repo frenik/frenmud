@@ -156,3 +156,24 @@ I suppose, then, that when we load a mob's file, we'll need to know what kind of
 mob it is before we can instantiate it and put it in game. 
 
 Let's try it with Zombie, next time I sit down.
+
+    2011-09-27 2323
+Haven't written in my notes, did a few things. The way I ended up doing the 
+mobs was to make the Zombie class a sort of behavior governing class. The Mob
+class will basically be empty, it just defines what a "mob" is. When the mob is
+loaded it then loads a personality object to give it "shape", if that makes any
+sense.
+
+I'm also, actually while I'm writing this, working on a blog for my coding 
+activities. It will replace the notes file, which won't show up in future commits.
+Just easier to keep up to date.
+
+I think I'll also write a client for this mud, and add some special features to
+make a client worthwhile. I'll have to think about it. Far in the future. I think
+it would be a good excuse to learn Java, although I may just end up doing it in
+C++. Worries for the future.
+
+I also started files.py, which will contain file i/o specific routines. I found I
+was loading files the same way a lot, so it made sense.
+
+Bye, notes.txt. See you on http://code.frenik.com.
