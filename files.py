@@ -14,21 +14,23 @@ def loadFromFile(filename):
     # empty dictionary to store settings from file
     settings = {}
     
-    # loop through file
-    while f:
-        line = f.readline()
+    # get a list containing each line in the file
+    lines = f.readlines()
+
+    # iterate through lines
+    for l in lines:
         # test for empty line, end read if found
-        if line=="": break 
+        if l=='': break 
         # strip endline
-        line = line.rstrip('\n')
+        l = l.rstrip('\n')
         # test for comment line, discard
-        if line.find('#') == 0: # comment lines start with # on first space
+        if l.find('#') == 0: # comment lines start with # on first space
             continue
         # split line by colon character
-        line = line.split(':')
+        l = l.split(':')
         # store everything up to first colon as key, everything after as value
-        settings[line[0]] = line[1]
-    
+        settings[l[0]] = l[1]
+        
     # close file
     f.close()
     

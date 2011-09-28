@@ -13,6 +13,8 @@ from constants import *
 
 class MUDServer:
     def __init__(self):
+        ''' Initialize the MUDServer, open sockets and begin listening.
+        '''
         # if self.shutdown ever goes to True, a shutdown has been initiated.
         self.shutdown = False
         #setting up host/port tuple
@@ -32,6 +34,9 @@ class MUDServer:
         self.lastTick = time.time()
 
     def serve(self):
+        ''' Enter main loop, which accepts new clients, and handles
+            input and output (and errors) for current clients.
+        '''
         print "Serving on port", self.port
         self.input = [self.s]
         self.output = [self.s]
@@ -118,6 +123,8 @@ class MUDServer:
         self.terminate()
 
     def terminate(self):
+        ''' Attempting to shut down gracefully.
+        '''
         # save world
         self.world.save()
     
@@ -132,12 +139,20 @@ class MUDServer:
         self.s.close()
         
     def isLoggedIn(self, name):
+        ''' Returns True if player with a name matching the given string "name"
+            has given both a name and password, otherwise returns false.
+        '''
         for p in self.pList:
             if p.name.upper()==name.upper() and p.gameState>=GS_GETPASS:
                return True
         return False
         
     def putPlayerInRoom(self,player,room):
+        ''' Intended to only be used upon login, function may be removed in the
+            future. Adds specified "player" (instance of Player class) to 
+            specified "room" (instance of Room class), prints to room that
+            the player has arrived, and forces the player to look.
+        '''
         # makes it a little more readable
         r = self.world.rList[room]
         # tell everyone in the room that this guy has arrived
@@ -150,9 +165,15 @@ class MUDServer:
         player.do_look()                              
 
 if __name__== "__main__":
+    ''' This is intended to be the main entry point of the program.
+    '''
+    # create an instance of MUDServer
     server = MUDServer()
     try:
+        # begin serving indefinitely
         server.serve()
     except KeyboardInterrupt:
+        # KeyboardInterrupt caught, terminate gracefully.
         server.terminate()
+        # and let the console know.
         print "Keyboard Interrupt caught, shutting down..."
