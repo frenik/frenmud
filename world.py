@@ -80,7 +80,7 @@ class World:
                             # set exit to room object
                             r.exits[e] = t
     
-    def save(self):        
+    def save(self):
         # loop through rooms
         for r in self.rList:
             # Room.save() also saves objects within rooms

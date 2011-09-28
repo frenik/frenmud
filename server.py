@@ -93,7 +93,7 @@ class MUDServer:
             
             # trim plist, iterating over a copy so we can safely remove items
             for p in self.pList[:]: 
-                if p.killed:       
+                if p.killed:
                     p.s.close()
                     self.input.remove(p)
                     self.output.remove(p)
