@@ -60,7 +60,7 @@ class Player:
         ''' I don't think this function ever gets used. It simply appends a 
             string (c) to the player's output buffer. In practice I just do it
             this way anyway inline.
-        ''''
+        '''
         self.outBuf += c
 
     def processInput(self):
