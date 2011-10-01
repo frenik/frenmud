@@ -2,13 +2,14 @@ from constants import *
 import os
 import objects
 import string
+import files
 
 class Player:        
     def __init__(self, sock, addr, server):
         ''' Initialize Player object.
         '''
         # dictionary containing commands, mapped to their functions for
-        # further parsing.
+        # further parsing. I'm putting it here so it can be added to per-player
         self.cmds = {'look':self.parse_look,
                 'quit':self.parse_quit,
                 'say':self.parse_say,
@@ -34,6 +35,7 @@ class Player:
         self.level = -1
         self.inventory = []
         self.room = None
+        self.isAdmin = False
 
     def appendInbuf(self, c):
         ''' Add a string to the player's input buffer, and process it if we've hit
@@ -121,25 +123,8 @@ class Player:
             self.kill()
 
     def loadPlayer(self, name):
-        # inventory
-        self.inventory = []
-
-        # empty temporary dict to hold file variables
-        settings = {}
-        # open file
-        f = open("players\\"+self.name+".plr", "r")
-        # iterate through file
-        while f:
-            line = f.readline()
-            # test for empty line
-            if line=="": break
-            line = line.rstrip('\n')            
-            # comment lines start with '#', discard line and continue
-            if line.find('#')==0: continue            
-            # split line into key:value
-            line = line.split(':')            
-            # create new value to key in dict
-            settings[line[0]] = line[1]
+        # get dict of settings in player's file
+        settings = files.loadFromFile('players\\%s.plr'%self.name)
             
         # iterate through dict
         for k in settings.keys():
@@ -150,18 +135,36 @@ class Player:
             elif k=="Level":
                 # store as int as required
                 self.level = int(settings[k])
+            elif k=="IsAdmin":
+                # turns out I couldn't just go bool(settings[k]), it always 
+                # returned True (presumably because it contained _something_.
+                if settings[k]=="True": self.isAdmin = True
+                if settings[k]=="False": self.isAdmin = False
             elif k=="Room":
+                # there may be a faster way to do this, rather than looping
+                # through every single room until we find it.
                 for r in self.server.world.rList:
                     if r.id==int(settings[k]):                   
                         self.room = int(settings[k])
             elif k=='I':
-                self.inventory.append(objects.Object(self,settings[k]))        
-        f.close()            
+                # this line creates an object and appends it to the player's
+                # inventory.
+                self.inventory.append(objects.Object(self,settings[k]))         
         
     def clearOutbuf(self):
+        ''' Clears the player's output buffer. Unused as far as I can remember.
+        '''
         self.outBuf = ''
 
     def kill(self):
+        ''' Removes a player from their current room, and sets killed to true,
+            which should trigger other removal processes in the main loop.
+        '''
+        # I don't remember why I put this in a try/except. Perhaps it was
+        # throwing errors when a player was not in a room, fairly obviously. My
+        # first though when looking at this block was "that could be bad if they
+        # aren't in a room", but perhaps it's dealt with. If they aren't in a 
+        # room, nothing needs to be done here.
         try:
             self.room.removePlayerFromRoom(self,'%s has quit.\r\n'%self.name)
         except:
@@ -169,20 +172,34 @@ class Player:
         self.killed = True
 
     def fileno(self):
+        ''' Perhaps an unnecessary function. I haven't used this, certainly. I
+            forget why I included it in the first place. Consider removal.
+        '''
         return self.s.fileno()
         
     def do_look(self,target=None):
+        ''' If "target" is given, builds a description of the object/player/mob
+            and adds it to the player's output buffer. Otherwise, looks at 
+            current room.
+        '''
         lookStr = ''
+        # if we have a target
         if target:
+            # every object should have a look string method. This is temporary,
+            # in the future I would like to build custom look strings within
+            # a mob/object/room/whatever. Possibilities there, and so not boring.
             lookStr += target.lookStr
-            pass
-        else:        
-            # get title (& id for now, later make this admin only)
+        else: # no target, look at room       
+            # i would like to move the bulk of this code to Room.buildLookString()
+            # or something similar. But this is fine for now.
+            # get title (& id for now, later make this admin only when admin is 
+            # implemented)
             lookStr += '%s (%i)\r\n'%(self.room.title, self.room.id)
             # get description
             lookStr += '%s\r\n'%self.room.desc
             # get exits
             lookStr += 'Exits: '
+            # if eFound is true after the loop, no exits were found. 
             eFound = False
             for i in range(10):
                 if self.room.exits[i] != None:
@@ -190,10 +207,14 @@ class Player:
                         lookStr += ', '
                     lookStr += '%s'%EXIT_STRINGS_SHORT[i]
                     eFound = True
+            # no exits found, tell 'em
+            if not eFound:
+                lookStr += 'none'
+            # down a line
             lookStr += '\r\n'
             # display players
             for p in self.room.pList:
-                if p!=self:
+                if p!=self: # make sure it's not the looking player
                     lookStr += '%s is here.\r\n'%p.name
             # display mobs
             for m in self.room.mList:
@@ -201,84 +222,151 @@ class Player:
             # display objects
             for o in self.room.inventory:
                 lookStr += '%s is on the ground.\r\n'%o.name
+        # down another line
         lookStr += '\r\n'
+        # send it to the output buffer
         self.outBuf += lookStr
       
     def do_say(self, sendString):
-        for p in self.room.pList:
-            if p != self:
+        ''' Prints a message via the say command to everyone in the room.
+        '''
+        # loop through current room's player list
+        for p in self.room.pList:            
+            if p != self: # it would be silly to send this to ourselves.
                 p.outBuf += self.name+" said, \""+sendString+"\"\r\n"
+        # gotta hear yourself, man. How else you gonna know if you said something stupid.
         self.outBuf += "You said, \""+sendString+"\"\r\n"
         
     def move(self, dir):
-        # make sure there's actually an exit that way.
+        ''' Attempts to move the player in the direction given by "dir", an 
+            integer between 0 and 9. (See EXIT_STRINGS)
+        '''
+        # make sure we're in a room
         if self.room:
+            # does the exit actually exist?
             if not self.room.exits[dir]:
+                # tell them they're stupid.
                 self.outBuf += "There's no exit there.\r\n"
+                # end the function
                 return
             
-        # otherwise do the moving crap   
+        # otherwise do the moving crap, starting with removing the player from
+        # current room...
         self.room.removePlayerFromRoom(self,
             '%s walks to the %s.\r\n'%(self.name,EXIT_STRINGS[dir]))
+        # setting the players current room to the room to dir...
         self.room = self.room.exits[dir]
+        # add player to new room
         self.room.addPlayerToRoom(self,'%s walks in.'%self.name)
+        # tell the player he moved successfully.
         self.outBuf += 'You walk %s.\r\n'%EXIT_STRINGS[dir]
+        # take a look, it's in a book, a reading rainbooooow
         self.do_look()
         
     def do_inventory(self):
+        ''' Displays to player their inventory.
+        '''
         self.outBuf += 'Inventory:\r\n'
+        # if inventory is empty...
         if self.inventory == []:
+            # tell 'em
             self.outBuf += 'None\r\n'
-        else:
+        else: # has something in inventory
+            # iterate through inventory
             for i in self.inventory:
+                # and print the name of the object
                 self.outBuf += '%s\r\n'%i.name
+        # down a line
         self.outBuf += '\r\n'
         
     def do_drop(self, objectstr):
+        ''' Drops an item.
+        '''
+        # initialize object to None for future success check
         object = None
+        # iterate through inventory
         for i in self.inventory:
+            # if the name matches exactly, this is temporary. This is further
+            # making the case for a string matching function.
             if string.upper(i.name)==string.upper(objectstr):
+                # set object to the object we found.
                 object = i
-         
+        # we found it
         if object:
+            # remove item from inventory
             self.inventory.remove(object)
+            # add item to room's inventory
             self.room.inventory.append(object)
+            # print it to the player
             self.outBuf += 'You drop %s.'%object.name
+            # print it to the room
             self.actionToRoom('%s drops %s.'%(self.name,object.name))
+        # we didn't find it.
         else:
             self.outBuf += 'You don\'t have "%s".'%objectstr
         self.outBuf += '\r\n'
     
     def do_get(self, objectstr):
+        ''' Picks up an object from the ground. Basically the same as do_drop(),
+            but with some bits switched around.
+        '''
+        # initialize object to None for future check.
         object = None
+        # iterate through inventory
         for i in self.room.inventory:
+            # more literal matching, add some fuzz please
             if string.upper(i.name)==string.upper(objectstr):
                 object = i
-        
+        # found it
         if object:
+            # remove from room
             self.room.inventory.remove(object)
+            # add to player's inventory
             self.inventory.append(object)
+            # tell 'em
             self.outBuf += 'You get %s.'%object.name
             self.actionToRoom('%s gets %s.'%(self.name, object.name))
+        # didn't find it
         else:
             self.outBuf += 'There is no "%s".'%objectstr
         self.outBuf += '\r\n'
         
     def do_quit(self):
+        ''' Called when player issues "quit" command.
+        '''
+        # save player
         self.save()
+        # send goodbye to client
         self.s.send("Goodbye!\r\n")
-        self.kill();
+        # kill player
+        self.kill()
         
-    def save(self):            
-        # open file
-        f = open("players\\"+self.name+".plr", "w")
+    def save(self):  
+        ''' Saves player to hard drive.
+        '''
+        pfile = 'players\\%s.plr'%self.name
+        tempPfile = pfile+'.temp'
+        # make backup of old file
+        try:
+            os.rename(pfile, tempPfile)
+        except OSError:
+            print 'Error: Renaming "%s.plr" to "%s.plr.temp". Tempfile \
+                already exists.'%(self.name,self.name)
+            return
+        
+        # open new pfile
+        f = open(pfile, "w")
         
         # write hard settings
-        f.write('Username:%s\n'%self.name)
-        f.write('Password:%s\n'%self.password)
-        f.write('Level:%i\n'%self.level)
-        f.write('Room:%i\n'%self.room.id)
-        
+        try:
+            f.write('Username:%s\n'%self.name)
+            f.write('Password:%s\n'%self.password)
+            f.write('IsAdmin:%s\n'%str(self.isAdmin))
+            f.write('Level:%i\n'%self.level)
+            f.write('Room:%i\n'%self.room.id)
+        except NameError:
+            print 'Error: Writing user to file, a variable doesn\'t exist (stupid)!'
+            
         # loop through inventory
         for i in self.inventory:
             # write to file
@@ -288,8 +376,12 @@ class Player:
             
         f.close()
         print 'User saved.'
+        # clean up temp file, all went well
+        os.remove(tempPfile)
             
     def actionToRoom(self, msg):
+        ''' Intended to print the results of an action to the room
+        '''
         for p in self.room.pList:
             if p!=self:
                 p.outBuf += '%s\r\n'%msg
@@ -305,11 +397,26 @@ class Player:
                 
                 Food for thought.
             '''
+            # strip "at"
+            # does arg have spaces?
+            hasSpace = arg.find(' ')
+            if hasSpace != -1:
+                firstWord = arg[0:hasSpace]
+                if firstWord.lower()=='at':
+                    # strip 'at ' and lowercase the whole thing
+                    arg = arg[3:].lower()
+            else:
+                # lowercase the whole thing for easier comparison
+                arg = arg.lower()
+                
             # attempt to find name in room that matches arg
             possibleTargs = []
             targ = None
+            # get copy of players in room
             objList = self.room.pList[:]
+            # get copy of mobs in room
             objList += self.room.mList[:]
+            # get copy of items in room
             objList += self.room.inventory[:]
             # look through list
             for o in objList:
@@ -317,24 +424,35 @@ class Player:
                 if arg[0]==o.name[0]:
                     # if our argument matches exactly, skip the rest of loop
                     if arg==o.name:
-                        possibleTargs.append(o)
+                        targ = o
                         break
                     # doesn't match exactly, but still a possibility
                     else:
-                        possibleTargs.append(o)
-                            
+                        possibleTargs.append(o)                            
+            # if we found no possibilities, it'll take care of itself as 
+            # targ equals either None or the an object whose name matches exactly.           
             # if we only found one possibility
             if len(possibleTargs)==1:
-                targ = possibleTargs[0]
-            # if we found no possibilities, it'll take care of itself as targ == None        
-            elif len(possibleTargs)==0: pass 
-            # more than one possibility
-            else: 
-                # narrow it down somehow
-                # for now just return the first possibility
-                targ = possibleTargs[0]
-                
-            # found it yet?
+                targ = possibleTargs[0]             
+            else: # more than one possibility
+                # attempt to narrow down possibleTargs by comparing 
+                # successive letters, starting at [1].
+                for i in range(1,len(arg)):
+                    # iterating over a copy for safe removal
+                    for p in possibleTargs[:]:
+                        if first[i] != p[i]:
+                            # if we run into a letter that doesn't match, remove it
+                            # as a possibility
+                            possibleTargs.remove(p)            
+                    # this will be True if we only have one possibility, so we
+                    # don't loop unnecessarily
+                    if len(possibleTargs)==1: 
+                        targ = possibleTargs[0]
+                        break
+                # we've narrowed it down all we can, let's just return the first
+                # possibility if we have more than one
+                if len(possibleTargs)>1: targ = possibleTargs[0]
+            # we've done all we could, this is the give-up point
             if targ:
                 self.do_look(targ)
                 return
@@ -368,6 +486,7 @@ class Player:
         # count spaces
         spaces = line.count(' ')
         if not spaces:
+            # if there are no spaces, we don't need to assign arguments
             first = line
             arg = None
         else:

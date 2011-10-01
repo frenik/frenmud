@@ -9,6 +9,8 @@ class Object:
         for k in settings.keys():
             if k=="Name":
                 self.name = settings[k]
+            if k=="Type":
+                self.type = settings[k]
 
         self.id = int(file)
         self.owner = owner

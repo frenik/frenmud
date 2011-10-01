@@ -15,6 +15,14 @@ class Zombie():
             # "A zombie groans, 'murrhrhrh'"
             'sayStr' : 'groans'
         }
+        self.generateInventory()
+        
+    def generateInventory(self):
+        ''' Generates the inventory of the mob. I don't want all mobs to spawn
+            with the same setup, necessarily. Gold amounts will be varied,
+            as well as items. All of that will be done here.
+        '''
+        pass
         
     def think(self):
         # we're not ready to think yet
