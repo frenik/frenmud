@@ -10,11 +10,13 @@ class Player:
         '''
         # dictionary containing commands, mapped to their functions for
         # further parsing. I'm putting it here so it can be added to per-player
-        self.cmds = {'look':self.parse_look,
-                'quit':self.parse_quit,
-                'say':self.parse_say,
-                'get':self.parse_get,
-                'give':self.parse_give}
+        self.cmds = {   
+                        'look':self.parse_look,
+                        'quit':self.parse_quit,
+                        'say':self.parse_say,
+                        'get':self.parse_get,
+                        'give':self.parse_give
+                    }
         # add long directions to self.cmds (this saved me some typing)
         for e in EXIT_STRINGS:
             self.cmds[e] = self.parse_move
@@ -150,6 +152,9 @@ class Player:
                 # this line creates an object and appends it to the player's
                 # inventory.
                 self.inventory.append(objects.Object(self,settings[k]))         
+        # set admin commands
+        if self.isAdmin:
+            self.cmds['dump'] = self.parse_dump
         
     def clearOutbuf(self):
         ''' Clears the player's output buffer. Unused as far as I can remember.
@@ -192,9 +197,11 @@ class Player:
         else: # no target, look at room       
             # i would like to move the bulk of this code to Room.buildLookString()
             # or something similar. But this is fine for now.
-            # get title (& id for now, later make this admin only when admin is 
-            # implemented)
-            lookStr += '%s (%i)\r\n'%(self.room.title, self.room.id)
+            # get title 
+            lookStr += '%s'%self.room.title
+            if self.isAdmin: #only see id if admin
+                lookStr += '(%i)'%self.room.id
+            lookStr += '\r\n' # new line
             # get description
             lookStr += '%s\r\n'%self.room.desc
             # get exits
@@ -340,6 +347,17 @@ class Player:
         self.s.send("Goodbye!\r\n")
         # kill player
         self.kill()
+    
+    def do_dump(self):
+        ''' "dump" command, initiates a full world save (ADMIN ONLY)
+        '''
+        # save world        
+        self.server.world.save()
+    
+        # loop through player list and disconnect all
+        for p in self.server.pList:
+            # save player first
+            p.save()
         
     def save(self):  
         ''' Saves player to hard drive.
@@ -479,8 +497,14 @@ class Player:
         
     def parse_move(self, arg):
         self.move(arg)
+        
+    def parse_dump(self, arg):
+        self.do_dump()
             
     def parse(self, line):
+        # BUG FOUND: "dump" returns "down" for non-admin. Shouldn't happen as 
+        # it should be eliminated as soon as it hits the 'u'
+        
         # strip whitespace from ends
         line = line.strip()
         # count spaces
@@ -534,7 +558,6 @@ class Player:
         
         # still haven't found it, possibleCmds is 2+ or 0
         if not cmd:
-            print possibleCmds
             # too many possibilities to decide
             if len(possibleCmds)>1:
                 return possibleCmds
@@ -545,7 +568,6 @@ class Player:
         # we've found it here, otherwise we'd already have returned.
         # see if it's a direction...
         if EXIT_STRINGS.count(cmd):
-            print EXIT_STRINGS.count(cmd)
             try:
                 pos = EXIT_STRINGS.index(cmd)
                 # sends the number of the direction as the arg instead
