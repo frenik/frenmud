@@ -499,12 +499,9 @@ class Player:
         self.do_dump()
             
     def parse(self, line):
-        # BUG FOUND: "dump" returns "down" for non-admin. Shouldn't happen as 
-        # it should be eliminated as soon as it hits the 'u'
+        # if user just hits enter, blank line
         if not len(line):
             return
-        else:
-            print "\"%s\""%line
         
         # strip whitespace from ends
         line = line.strip()
@@ -547,28 +544,24 @@ class Player:
                         # if we run into a letter that doesn't match, remove it
                         # as a possibility
                         possibleCmds.remove(p)            
-                # this will be True if we only have one possibility
+            # this will be True if we only have one possibility, removed
+            # from for loop as we want that to process fully.
             if len(possibleCmds)==1: 
                cmd = possibleCmds[0]
-               
-        print "after narrow: %s"%possibleCmds
         
         # still haven't found it, possibleCmds is 2+ or 0
         if not cmd:
             # NOTE: These returns do nothing right now.
             # too many possibilities to decide
             if len(possibleCmds)>1:
-                print possibleCmds
-                return possibleCmds
+                self.outBuf += "Too many possible commands.\r\n"
+                return
             # no possibilities left
             if not len(possibleCmds):
-                print "No matching cmd"
-                return first
+                self.outBuf += "\"%s\" is not a valid command.\r\n"%first
+                return
         
         # we've found it here, otherwise we'd already have returned.
-        # here is where we make sure that the word we've found as "cmd" actually
-        # matches up with the input, letter by letter
-        print "CMD: %s"%cmd
         
         # see if it's a direction, because we have to send pos instead of arg
         # as the argument to self.cmds[cmd]
@@ -576,7 +569,6 @@ class Player:
             try:
                 pos = EXIT_STRINGS.index(cmd)
                 # sends the number of the direction as the arg instead
-                print possibleCmds
                 self.cmds[cmd](pos)            
             except:
                 pass
@@ -584,11 +576,9 @@ class Player:
             try:
                 pos = EXIT_STRINGS_SHORT.index(cmd.upper())
                 # sends the number of the direction as the arg instead
-                print possibleCmds
                 self.cmds[cmd](pos)
             except:
                 pass
         # send the argument to the function specified in the dictionary
         else:
-            print possibleCmds
             self.cmds[cmd](arg)
