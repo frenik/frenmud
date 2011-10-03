@@ -59,13 +59,6 @@ class Player:
             self.processInput()
             # clear input buffer after it's been processed
             self.inBuf = ''
-            
-    def appendOutbuf(self, c):
-        ''' I don't think this function ever gets used. It simply appends a 
-            string (c) to the player's output buffer. In practice I just do it
-            this way anyway inline.
-        '''
-        self.outBuf += c
 
     def processInput(self):
         ''' Process the data in the player's input buffer, depending on game state.
@@ -237,6 +230,10 @@ class Player:
     def do_say(self, sendString):
         ''' Prints a message via the say command to everyone in the room.
         '''
+        # handle empty string
+        if not sendString:
+            self.outBuf += "Say what?\r\n"
+            return
         # loop through current room's player list
         for p in self.room.pList:            
             if p != self: # it would be silly to send this to ourselves.
@@ -504,6 +501,10 @@ class Player:
     def parse(self, line):
         # BUG FOUND: "dump" returns "down" for non-admin. Shouldn't happen as 
         # it should be eliminated as soon as it hits the 'u'
+        if not len(line):
+            return
+        else:
+            print "\"%s\""%line
         
         # strip whitespace from ends
         line = line.strip()
@@ -536,11 +537,6 @@ class Player:
                     possibleCmds.append(c)                
         # At this point we have either a list of possible commands, or
         # have found the command itself. 
-        # If we've found it, possibleCmds will have only one element.
-        if not cmd:
-            if len(possibleCmds)==1:
-                cmd = possibleCmds[0]
-
         # if we still haven't found it...
         if not cmd:
             # attempt to narrow down possibleCmds by comparing 
@@ -552,25 +548,35 @@ class Player:
                         # as a possibility
                         possibleCmds.remove(p)            
                 # this will be True if we only have one possibility
-                if len(possibleCmds)==1: 
-                    cmd = possibleCmds[0]
-                    break
+            if len(possibleCmds)==1: 
+               cmd = possibleCmds[0]
+               
+        print "after narrow: %s"%possibleCmds
         
         # still haven't found it, possibleCmds is 2+ or 0
         if not cmd:
+            # NOTE: These returns do nothing right now.
             # too many possibilities to decide
             if len(possibleCmds)>1:
+                print possibleCmds
                 return possibleCmds
             # no possibilities left
-            elif not len(possibleCmds):
+            if not len(possibleCmds):
+                print "No matching cmd"
                 return first
         
         # we've found it here, otherwise we'd already have returned.
-        # see if it's a direction...
+        # here is where we make sure that the word we've found as "cmd" actually
+        # matches up with the input, letter by letter
+        print "CMD: %s"%cmd
+        
+        # see if it's a direction, because we have to send pos instead of arg
+        # as the argument to self.cmds[cmd]
         if EXIT_STRINGS.count(cmd):
             try:
                 pos = EXIT_STRINGS.index(cmd)
                 # sends the number of the direction as the arg instead
+                print possibleCmds
                 self.cmds[cmd](pos)            
             except:
                 pass
@@ -578,9 +584,11 @@ class Player:
             try:
                 pos = EXIT_STRINGS_SHORT.index(cmd.upper())
                 # sends the number of the direction as the arg instead
+                print possibleCmds
                 self.cmds[cmd](pos)
             except:
                 pass
-        # send the argument to the function specified in the dictionary.
+        # send the argument to the function specified in the dictionary
         else:
+            print possibleCmds
             self.cmds[cmd](arg)
